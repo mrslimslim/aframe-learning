@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="/lib/aframe-master.js"></script>
+    <script>
+        AFRAME.registerComponent('particle-custom', {
+            schema: {
+                size: { type: 'number', default: 0.5 },
+                redNumber: { type: 'number', default: 500 },
+                blueNumber: { type: 'number', default: 500 },
+                height: { type: 'number', default: 2 },
+                width: { type: 'number', default: 30 },
+                color: { type: 'color', default: '#eccc68' }
+            },
+            init() {
+                var data = this.data;
+                const textureLoader = new THREE.TextureLoader();
+                const blueTexture = textureLoader.load('/img/blue-dot.png');
+                this.geometry = new THREE.Geometry();
+                const size = data.size, width = data.width, height = data.height;
+                const transparent = true;
+                const opacity = 6;
+                const color = data.color;
+                var el = this.el;
+                const sizeAttenuation = true;
+                this.material = new THREE.PointsMaterial({
+                    size: size,
+                    transparent: transparent,
+                    opacity: opacity,
+                    map: blueTexture,
+                    blending: THREE.AdditiveBlending,
+                    sizeAttenuation: sizeAttenuation,
+                    color: color
+                });
+                for (var i = 0; i < data.redNumber; i++) {
+                    var particle = new THREE.Vector3(
+                        Math.random() * width - width / 2,  // -15 到 15之间
+                        Math.random() * height - height / 2,  // 0 到 4
+                        1 + (i / 600)  // 
+                    )
+                    particle.velocityY = 0;  // Y轴速度为 0.1 到 0.2之间
+                    particle.velocityX = 0.1 + Math.random() / 5; // -0.12 到 0.12
+                    this.geometry.vertices.push(particle);
+                }
+                this.mesh = new THREE.Points(this.geometry, this.material);
+                this.mesh.sortParticles = true;
+                el.setObject3D('mesh', this.mesh);
+            },
+            update() { },
+            tick(time, timeDelta) {
+                const vertices = this.geometry.vertices;
+                vertices.forEach(v => {
+                    // 当前位置
+                    v.x = v.x + v.velocityX;
+                    if (v.x >= 15) v.x = -15;
+                })
+                this.geometry.verticesNeedUpdate = true;
+            }
+        })
+
+    </script>
+</head>
+
+<body>
+
+    <a-scene>
+        <a-entity particle-custom rotation="0 60 0"></a-entity>
+        <a-entity particle-custom="color:#ff6b81 " rotation="20 120 0"></a-entity>
+        <a-sky color="#333333"></a-sky>
+        <a-camera position="2 4 20"></a-camera>
+    </a-scene>
+</body>
+
+</html>
